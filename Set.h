@@ -111,36 +111,22 @@ public:
     template<typename T>
     friend ostream& operator<<(ostream& os, Set<T>& s);
 
-    bool operator==(const Set<ELEMENT> &other) const {
-        if (this->_size != other._size) {
-            return false;
-        }
-        // sets are equal if the ELEMENTs are the same, regardless of order
-        // build two temp sets and sort them and compare the sorted sets
-        Set<ELEMENT> temp1 = *this;
-        Set<ELEMENT> temp2 = other;
-        temp1.sort();
-        temp2.sort();
-        for (int i = 0; i < temp1.size(); i++) {
-            if (temp1[i] != temp2[i]) {
-                return false;
-            }
-        }
-        return true;
+    bool operator==(Set<ELEMENT> &other)  {
+        return this->isEqualTo(other);
     }
-    bool operator!=(const Set<ELEMENT> &other)const {
+    bool operator!=( Set<ELEMENT> &other) {
         return !(*this == other);
     }
-    bool operator<(const Set<ELEMENT> &other)const {
+    bool operator<( Set<ELEMENT> &other) {
         return this->_size < other._size;
     }
-    bool operator>(const Set<ELEMENT> &other)const {
+    bool operator>( Set<ELEMENT> &other) {
         return this->_size > other._size;
     }
-    bool operator<=(const Set<ELEMENT> &other)const {
+    bool operator<=( Set<ELEMENT> &other) {
         return this->_size <= other._size;
     }
-    bool operator>=(const Set<ELEMENT> &other)const {
+    bool operator>=( Set<ELEMENT> &other) {
         return this->_size >= other._size;
     }
 
