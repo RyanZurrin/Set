@@ -2,52 +2,74 @@
 #include "Set.h"
 int main() {
     // test the Set class here
-    Set<int> s;
-    cout << "s is empty: " << s.isEmpty() << endl;
-    s.insert(1);
-    s.insert(2);
-    s.insert(3);
-    s.insert(4);
-    s.insert(5);
-    s.insert(4);
-    s.insert(5);
-    s.insert(6);
-    s.insert(7);
-    s.insert(8);
-    s.insert(9);
-    cout << "s is empty: " << s.isEmpty() << endl;
+    Set<char> s;
+    cout << "s is empty: " << s.isEmptySet() << endl;
+    s.add('A');
+    s.add('B');
+    s.add('C');
+    s.add('K');
+    s.add('Q');
+    s.add('P');
+    s.add('Y');
+    s.add('C');
+    s.add('W');
+    s.add('Q');
+    s.add('T');
+    cout << "s is empty: " << s.isEmptySet() << endl;
     cout << "is s full: " << s.isFull() << endl;
     cout << s << endl;
     std::cout << "size: " << s.size() << std::endl;
-    std::cout << "contains 1 " << s.contains(1) << std::endl;
-    std::cout << "containts 10 " << s.contains(10) << std::endl;
-    std::cout << "containts 2 " << s.contains(2) << std::endl;
-    cout << "removing 1 and 2\n";
-    s.remove(1);
-    s.remove(2);
+    std::cout << "contains q " << s.contains('Q') << std::endl;
+    std::cout << "containts Z " << s.contains('Z') << std::endl;
+    std::cout << "containts 27 " << s.contains('P') << std::endl;
+    cout << "removing P and A\n";
+    s.remove('P');
+    s.remove('A');
     cout << s << endl;
-    std::cout << s.size() << std::endl;
-    std::cout << "contains 1 " << s.contains(1) << std::endl;
-    std::cout << "containts 10 " << s.contains(10) << std::endl;
-    std::cout << "containts 2 " << s.contains(2) << std::endl;
+    std::cout << "new size: " << s.size() << std::endl;
+    std::cout << "contains Q " << s.contains('Q') << std::endl;
+    std::cout << "containts Z " << s.contains('Z') << std::endl;
+    std::cout << "containts P " << s.contains('P') << std::endl;
     // shuffle the set
     cout << "shuffling\n";
     s.shuffle();
     cout << s << endl;
     // sort the set
     cout << "sorting\n";
-    s.sort();
+    s.sort(DESCENDING);
     cout << s << endl;
     // test the iterator
     cout << "testing iterator\n";
-    Set<int>::Iterator it = s.begin();
+    Set<char>::iterator it = s.begin();
     while (it.hasNext()) {
         cout << *it << " ";
         it.next();
     }
     cout << endl;
 
-    cout << s << endl;
+    vector<vector<char>> powerSet = s.getPowerSet();
+    Set<char> b;
+    b.setUnique(false);
+    for (int i = 0; i < powerSet.size(); i++) {
+        for (int j = 0; j < powerSet[i].size(); j++) {
+            b.add(powerSet[i][j]);
+        }
+
+    }
+    cout <<"printing power set\n";
+    cout << b << endl;
+    // is s a subset of b?
+    cout << "is s a subset of b? " << s.isSubsetOf(b) << endl;
+    Set<char> c;
+    c.add('Z');
+    c.add('X');
+    c.add('F');
+    cout << "is c a subset of b? " << c.isSubsetOf(b) << endl;
+    cout << "is b a subset of c? " << b.isSubsetOf(c) << endl;
+    cout << "is b a subset of s? " << b.isSubsetOf(s) << endl;
+    cout << "is s a subset of c? " << s.isSubsetOf(c) << endl;
+
+    //cout << s << endl;
     cout << "printing in reverse order\n";
     s.printReverse();
     cout << endl;
@@ -57,12 +79,10 @@ int main() {
     cout << "clearing\n";
     s.clear();
     cout << s << endl;
-    cout << "is s empty: " << s.isEmpty() << endl;
+    cout << "is s empty: " << s.isEmptySet() << endl;
     cout << "is s full: " << s.isFull() << endl;
     cout << "size: " << s.size() << endl;
-    cout << "contains 1 " << s.contains(1) << endl;
-    cout << "containts 10 " << s.contains(10) << endl;
-    cout << "containts 2 " << s.contains(2) << endl;
+    cout << "contains Q " << s.contains('Q') << endl;
 
 
 

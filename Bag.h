@@ -119,6 +119,7 @@ public:
             current = current->next;
         }
     }
+
     ITEM get(int i) {
         Node<ITEM> *current = first;
         for (int j = 0; j < i; j++) {
@@ -165,6 +166,7 @@ public:
         }
         delete current;
         n--;
+        return item;
     }
     void clear() {
         Node<ITEM> *tmp;

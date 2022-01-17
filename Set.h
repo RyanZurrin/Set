@@ -6,611 +6,1047 @@
 #define SET_SET_H
 #include <bits/stdc++.h>
 using namespace std;
+void powerSetHelper(string s, const string& o, vector<string> &v);
+// buld an enum type for the differnt ways you can sort
+enum SortType {
+    ASCENDING,
+    DESCENDING,
+    RANDOM
+};
 
-template<typename ITEM>
+template<typename ELEMENT>
 class SetNode {
 public:
-    ITEM data;
-    SetNode<ITEM> *next;
-    SetNode<ITEM> *prev;
+    ELEMENT _element;
+    SetNode<ELEMENT> *_next;
+    SetNode<ELEMENT> *_prev;
     SetNode() {
-        next = nullptr;
-        prev = nullptr;
+        _next = nullptr;
+        _prev = nullptr;
     }
-    SetNode(ITEM data) {
-        this->data = data;
-        this->next = nullptr;
-        this->prev = nullptr;
+    SetNode(ELEMENT elem) {
+        this->_element = elem;
+        this->_next = nullptr;
+        this->_prev = nullptr;
     }
 };
 
-template<typename ITEM>
+template<typename ELEMENT>
 class Set {
-    SetNode<ITEM> *_head;
-    SetNode<ITEM> *_tail;
-    SetNode<ITEM> *_current;
-    int _size;
-    int _capacity;
-    bool _resizable;
+    SetNode<ELEMENT> *_head;
+    SetNode<ELEMENT> *_tail;
+    int _size{};
+    int _capacity{};
+    bool _resizable{};
+    bool _sorted{};
+    bool _unique{};
 public:
-    Set(int capacity = INT_MAX); // constructor
-    Set(ITEM data, int capacity = INT_MAX); // constructor
-    Set(vector<ITEM> data); // constructor
-    Set(const Set<ITEM> &other); // copy constructor
-    Set(Set<ITEM> &&other);// move constructor
-    Set<ITEM>& operator=(const Set<ITEM> &other); // assignment operator
+    Set(int capacity = INT_MAX, bool sorted = false, bool unique = true); // constructor
+    Set(ELEMENT elem, int capacity = INT_MAX, bool sorted = false, bool unique = true); // constructor
+    Set(vector<ELEMENT> elements, bool sorted = false, bool unique = true); // constructor
+    Set(Set<ELEMENT> &other); // copy constructor
+    Set(Set<ELEMENT> &&other);// move constructor
+    Set<ELEMENT>& operator=(const Set<ELEMENT> &other); // assignment operator
 
     ~Set();
-    void insert(ITEM data);
-    void remove(ITEM data);
-    bool contains(ITEM data);
-    ITEM get(int i);
-    ITEM pickRandom();
-    ITEM removeRandom();
-    void sort();
+    void add(ELEMENT elem);
+    void remove(ELEMENT elem, bool all = false);
+    bool contains(ELEMENT elem);
+    ELEMENT get(int i);
+    ELEMENT getElement(ELEMENT elem);
+    SetNode<ELEMENT>* getNode(ELEMENT elem);
+    ELEMENT pickRandom();
+    ELEMENT removeRandom();
+    void sort(SortType sortType = ASCENDING);
     void shuffle();
     void clear();
     void print();
     void printReverse();
     int size();
+    int elementCount(ELEMENT elem);
     int capacity();
-    bool isEmpty();
     bool isFull();
     void resize();
     void setResizable(bool resizable);
+    void setSorted(bool sorted);
+    void setUnique(bool unique);
+    // getHead()
+    SetNode<ELEMENT>* getHead();
+    // getTail()
+    SetNode<ELEMENT>* getTail();
+    vector<vector<char>> getPowerSet(bool print = false);
+
+    bool isSubsetOf(Set<ELEMENT> other);
+    bool isPropersubsetOf(Set<ELEMENT> other);
+    bool isSupersetOf(Set<ELEMENT> other);
+    bool iaProperSupersetOf(Set<ELEMENT> other);
+    bool isDisjointFrom(Set<ELEMENT> other);
+    bool isEqualTo(Set<ELEMENT> other);
+    bool isEmptySet();
+
     string toString();
-    // overload the () operator
-    SetNode<ITEM>* operator()(ITEM data);
-    Set<ITEM> operator[](int i);
+    SetNode<ELEMENT>* operator()(ELEMENT elem) {
+        return getElement(elem);
+    }
+    Set<ELEMENT> operator[](int i) {
+        return get(i);
+    }
 
     template<typename T>
     friend ostream& operator<<(ostream& os, Set<T>& s);
 
-    bool operator==(const Set<ITEM> &other);
-    bool operator!=(const Set<ITEM> &other);
-    bool operator<(const Set<ITEM> &other);
-    bool operator>(const Set<ITEM> &other);
-    bool operator<=(const Set<ITEM> &other);
-    bool operator>=(const Set<ITEM> &other);
+    bool operator==(const Set<ELEMENT> &other) {
+        if (this->_size != other._size) {
+            return false;
+        }
+        // sets are equal if the ELEMENTs are the same, regardless of order
+        // build two temp sets and sort them and compare the sorted sets
+        Set<ELEMENT> temp1 = *this;
+        Set<ELEMENT> temp2 = other;
+        temp1.sort();
+        temp2.sort();
+        for (int i = 0; i < temp1.size(); i++) {
+            if (temp1[i] != temp2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+    bool operator!=(const Set<ELEMENT> &other) {
+        return !(*this == other);
+    }
+    bool operator<(const Set<ELEMENT> &other) {
+        return this->_size < other._size;
+    }
+    bool operator>(const Set<ELEMENT> &other) {
+        return this->_size > other._size;
+    }
+    bool operator<=(const Set<ELEMENT> &other) {
+        return this->_size <= other._size;
+    }
+    bool operator>=(const Set<ELEMENT> &other) {
+        return this->_size >= other._size;
+    }
 
-    // Iterator class
-    class Iterator {
-        SetNode<ITEM> *_current;
-        SetNode<ITEM> *_head;
-        SetNode<ITEM> *_tail;
+    // overload the+ operator to add an ELEMENT to the set
+    Set<ELEMENT> operator+(ELEMENT elem) {
+        Set<ELEMENT> temp = *this;
+        temp.add(elem);
+        return temp;
+    }
+    // overload the += operator to add an ELEMENT to the set
+    Set<ELEMENT>& operator+=(ELEMENT elem) {
+        this->add(elem);
+        return *this;
+    }
+    // overload the + operator to add two sets together
+    Set<ELEMENT> operator+(const Set<ELEMENT> &other) {
+        Set<ELEMENT> temp = *this;
+        for (int i = 0; i < other.size(); i++) {
+            temp.add(other[i]);
+        }
+        return temp;
+    }
+    // overload the += operator to add a set to another set
+    Set<ELEMENT>& operator+=(const Set<ELEMENT> &other) {
+        for (int i = 0; i < other.size(); i++) {
+            this->add(other[i]);
+        }
+        return *this;
+    }
+    // overload the - operator to remove an ELEMENT from a set
+    Set<ELEMENT> operator-(const ELEMENT& elem) const {
+        Set<ELEMENT> temp = *this;
+        temp.remove(elem);
+        return temp;
+    }
+    // overload the -= operator to remove an ELEMENT from a set
+    Set<ELEMENT>& operator-=(const ELEMENT& elem) {
+        this->remove(elem);
+        return *this;
+    }
+    // overload the - operator to remove simialr ELEMENTs from one set out of another
+    Set<ELEMENT> operator-(const Set<ELEMENT> &other) const {
+        Set<ELEMENT> temp = *this;
+        for (int i = 0; i < other.size(); i++) {
+            temp.remove(other[i]);
+        }
+        return temp;
+    }
+    // overload the -= operator to remove simialr ELEMENTs from one set out of another
+    Set<ELEMENT>& operator-=(const Set<ELEMENT> &other) {
+        for (int i = 0; i < other.size(); i++) {
+            this->remove(other[i]);
+        }
+        return *this;
+    }
+    // overload the % operator to find the intersection of two sets
+    Set<ELEMENT> operator%(const Set<ELEMENT> &other) const {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = this->_head;
+        while (temp != nullptr) {
+            if (other.contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        return result;
+    }
+    // overload the %= operator to find the intersection of two sets
+    Set<ELEMENT>& operator%=(const Set<ELEMENT> &other) {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = this->_head;
+        while (temp != nullptr) {
+            if (other.contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        *this = result;
+        return *this;
+    }
+    // overload the * operator to find the union of two sets
+    Set<ELEMENT> operator*(const Set<ELEMENT> &other) const {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = this->_head;
+        while (temp != nullptr) {
+            result.add(temp->elem);
+            temp = temp->_next;
+        }
+        temp = other._head;
+        while (temp != nullptr) {
+            result.add(temp->elem);
+            temp = temp->_next;
+        }
+        return result;
+    }
+    // overload the *= operator to find the union of two sets
+    Set<ELEMENT>& operator*=(const Set<ELEMENT> &other) {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = this->_head;
+        while (temp != nullptr) {
+            result.add(temp->elem);
+            temp = temp->_next;
+        }
+        temp = other._head;
+        while (temp != nullptr) {
+            result.add(temp->elem);
+            temp = temp->_next;
+        }
+        *this = result;
+        return *this;
+    }
+    // overload the / operator to find the symmetric difference of two sets
+    Set<ELEMENT> operator/(const Set<ELEMENT> &other) const {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = this->_head;
+        while (temp != nullptr) {
+            if (!other.contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        temp = other._head;
+        while (temp != nullptr) {
+            if (!this->contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        return result;
+    }
+    // overload the /= operator to find the symmetric difference of two sets
+    Set<ELEMENT>& operator/=(const Set<ELEMENT> &other) {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = this->_head;
+        while (temp != nullptr) {
+            if (!other.contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        temp = other._head;
+        while (temp != nullptr) {
+            if (!this->contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        *this = result;
+        return *this;
+    }
+    // overload the ^ operator to find the complement of a set
+    Set<ELEMENT> operator^(const Set<ELEMENT> &other) const {
+        Set<ELEMENT> result;
+        SetNode<ELEMENT>* temp = other._head;
+        while (temp != nullptr) {
+            if (!this->contains(temp->elem)) {
+                result.add(temp->elem);
+            }
+            temp = temp->_next;
+        }
+        return result;
+    }
+
+    // iterators
+    class iterator {
     public:
-        Iterator(SetNode<ITEM> *current, SetNode<ITEM> *head, SetNode<ITEM> *tail) {
-            _current = current;
-            _head = head;
-            _tail = tail;
-        }
-        Iterator(const Iterator &other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
-        }
-        Iterator(Iterator &&other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
-        }
-        Iterator& operator=(const Iterator &other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
+        iterator(SetNode<ELEMENT>* node) : _node(node) {}
+        iterator& operator++() {
+            _node = _node->_next;
             return *this;
         }
-        Iterator& operator=(Iterator &&other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
+        iterator operator++(int) {
+            iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+        bool operator==(const iterator& other) const {
+            return _node == other._node;
+        }
+        bool operator!=(const iterator& other) const {
+            return _node != other._node;
+        }
+        ELEMENT& operator*() {
+            return _node->_element;
+        }
+        // hasNext
+        bool hasNext() {
+            return _node != nullptr;
+        }
+        // next
+        ELEMENT next() {
+            ELEMENT result = _node->_element;
+            _node = _node->_next;
+            return result;
+        }
+    private:
+        SetNode<ELEMENT>* _node;
+    };
+    iterator begin() {
+        return iterator(_head);
+    }
+    iterator end() {
+        return iterator(nullptr);
+    }
+    // reverse iterators
+    class reverse_iterator {
+    public:
+        reverse_iterator(SetNode<ELEMENT>* node) : _node(node) {}
+        reverse_iterator& operator++() {
+            _node = _node->_prev;
             return *this;
         }
-        bool operator==(const Iterator &other) {
-            return _current == other._current;
+        reverse_iterator operator++(int) {
+            reverse_iterator temp = *this;
+            ++(*this);
+            return temp;
         }
-        bool operator!=(const Iterator &other) {
-            return _current != other._current;
+        bool operator==(const reverse_iterator& other) const {
+            return _node == other._node;
         }
-        Iterator& operator++() {
-            if (_current == nullptr) {
-                _current = _head;
-            } else {
-                _current = _current->next;
-            }
-            return *this;
+        bool operator!=(const reverse_iterator& other) const {
+            return _node != other._node;
         }
-        Iterator& operator--() {
-            if (_current == nullptr) {
-                _current = _tail;
-            } else {
-                _current = _current->prev;
-            }
-            return *this;
-        }
-        ITEM& operator*() {
-            return _current->data;
-        }
-        ITEM* operator->() {
-            return &_current->data;
+        ELEMENT& operator*() {
+            return _node->_element;
         }
         // hasNext()
+        bool hasNext() {
+            return _node != nullptr;
+        }
         // next()
-        ITEM next() {
-            if (_current == nullptr) {
-                _current = _head;
-            } else {
-                _current = _current->next;
-            }
-            return _current->data;
+        ELEMENT& next() {
+            ELEMENT& temp = _node->_element;
+            _node = _node->_prev;
+            return temp;
         }
-        ITEM hasNext() {
-            if (_current == nullptr) {
-                return _head->data;
-            } else {
-                return _current->next->data;
-            }
-        }
-
+    private:
+        SetNode<ELEMENT>* _node;
     };
-    Iterator begin() {
-        return Iterator(_head, _head, _tail);
+    reverse_iterator rbegin() {
+        return reverse_iterator(_tail);
     }
-    Iterator end() {
-        return Iterator(_tail, _head, _tail);
-    }
-    // Reverse Iterator class
-    class ReverseIterator {
-        SetNode<ITEM> *_current;
-        SetNode<ITEM> *_head;
-        SetNode<ITEM> *_tail;
-    public:
-        ReverseIterator(SetNode<ITEM> *current, SetNode<ITEM> *head, SetNode<ITEM> *tail) {
-            _current = current;
-            _head = head;
-            _tail = tail;
-        }
-        ReverseIterator(const ReverseIterator &other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
-        }
-        ReverseIterator(ReverseIterator &&other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
-        }
-        ReverseIterator& operator=(const ReverseIterator &other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
-            return *this;
-        }
-        ReverseIterator& operator=(ReverseIterator &&other) {
-            _current = other._current;
-            _head = other._head;
-            _tail = other._tail;
-            return *this;
-        }
-        bool operator==(const ReverseIterator &other) {
-            return _current == other._current;
-        }
-        bool operator!=(const ReverseIterator &other) {
-            return _current != other._current;
-        }
-        ReverseIterator& operator++() {
-            if (_current == nullptr) {
-                _current = _tail;
-            } else {
-                _current = _current->prev;
-            }
-            return *this;
-        }
-        ReverseIterator& operator--() {
-            if (_current == nullptr) {
-                _current = _head;
-            } else {
-                _current = _current->next;
-            }
-            return *this;
-        }
-        ITEM& operator*() {
-            return _current->data;
-        }
-        ITEM* operator->() {
-            return &_current->data;
-        }
-    };
-    ReverseIterator rbegin() {
-        return ReverseIterator(_tail, _head, _tail);
-    }
-    ReverseIterator rend() {
-        return ReverseIterator(_head, _head, _tail);
+    reverse_iterator rend() {
+        return reverse_iterator(nullptr);
     }
 
 };
 
-
-template<typename ITEM>
-Set<ITEM>::Set(int capacity) {
-    _head = new SetNode<ITEM>();
-    _tail = new SetNode<ITEM>();
-    _head->next = _tail;
-    _tail->prev = _head;
+template<typename ELEMENT>
+Set<ELEMENT>::Set(int capacity, bool sorted, bool unique) {
+    _head = nullptr;
+    _tail = nullptr;
     _size = 0;
     _capacity = capacity;
     _resizable = false;
+    _sorted = sorted;
+    _unique = unique;
 }
 
-template<typename ITEM>
-Set<ITEM>::Set(ITEM data, int capacity) {
-    _head = new SetNode<ITEM>();
-    _tail = new SetNode<ITEM>();
-    _head->next = _tail;
-    _tail->prev = _head;
+template<typename ELEMENT>
+Set<ELEMENT>::Set(ELEMENT elem, int capacity, bool sorted, bool unique) {
+    _head = nullptr;
+    _tail = nullptr;
     _size = 0;
     _capacity = capacity;
-    _resizable = false;
-    insert(data);
+    _resizable = true;
+    _sorted = sorted;
+    _unique = unique;
+    add(elem);
 }
 
-template<typename ITEM>
-Set<ITEM>::Set(vector<ITEM> data) {
-    // adds all elements in data to the set only keeping unique elements
-    _head = new SetNode<ITEM>();
-    _tail = new SetNode<ITEM>();
-    _head->next = _tail;
-    _tail->prev = _head;
+template<typename ELEMENT>
+Set<ELEMENT>::Set(vector<ELEMENT> elements, bool sorted, bool unique) {
+    _head = nullptr;
+    _tail = nullptr;
     _size = 0;
-    _capacity = data.size();
+    _capacity = INT_MAX;
     _resizable = false;
-    for (auto it = data.begin(); it != data.end(); ++it) {
-        insert(*it);
+    _sorted = sorted;
+    _unique = unique;
+    for (ELEMENT elem : elements) {
+        add(elem);
     }
 }
 
-
-template<typename ITEM>
-Set<ITEM>::Set(const Set<ITEM> &other) {
-    _head = new SetNode<ITEM>();
-    _tail = new SetNode<ITEM>();
-    _head->next = _tail;
-    _tail->prev = _head;
+template<typename ELEMENT>
+Set<ELEMENT>::Set(Set<ELEMENT> &other) {
+    _head = nullptr;
+    _tail = nullptr;
     _size = 0;
-    _capacity = other._capacity;
+    _capacity = INT_MAX;
     _resizable = other._resizable;
-    for (auto it = other.begin(); it != other.end(); ++it) {
-        insert(*it);
+    _sorted = other._sorted;
+    _unique = other._unique;
+    for (ELEMENT elem : other) {
+        add(elem);
     }
 }
 
-template<typename ITEM>
-Set<ITEM>::Set(Set<ITEM> &&other) {
+template<typename ELEMENT>
+Set<ELEMENT>::Set(Set<ELEMENT> &&other) {
     _head = other._head;
     _tail = other._tail;
     _size = other._size;
-    other._head = nullptr;
-    other._tail = nullptr;
     _capacity = other._capacity;
     _resizable = other._resizable;
+    _sorted = other._sorted;
+    _unique = other._unique;
+    other._head = nullptr;
+    other._tail = nullptr;
     other._size = 0;
+    other._capacity = INT_MAX;
+    other._resizable = false;
+    other._sorted = false;
+    other._unique = false;
 }
 
-template<typename ITEM>
-Set<ITEM> &Set<ITEM>::operator=(const Set<ITEM> &other) {
+template<typename ELEMENT>
+Set<ELEMENT> &Set<ELEMENT>::operator=(const Set<ELEMENT> &other) {
     if (this != &other) {
-        _head = new SetNode<ITEM>();
-        _tail = new SetNode<ITEM>();
-        _head->next = _tail;
-        _tail->prev = _head;
-        _size = 0;
-        _capacity = other._capacity;
-        _resizable = other._resizable;
-        for (auto it = other.begin(); it != other.end(); ++it) {
-            insert(*it);
+        clear();
+        for (ELEMENT elem : other) {
+            add(elem);
         }
     }
     return *this;
 }
 
-template<typename ITEM>
-Set<ITEM>::~Set() {
-    clear();
+template<typename ELEMENT>
+Set<ELEMENT>::~Set() {
+
 }
 
-
-template<typename ITEM>
-void Set<ITEM>::insert(ITEM data) {
-    // checks to makes sure the data is not already in the set
-    if (contains(data)) {
-        return;
-    }
-    // checks to make sure the set is not full
-    if (_size == _capacity) {
-        if (_resizable) {
-            _capacity *= 2;
-        } else {
+template<typename ELEMENT>
+void Set<ELEMENT>::add(ELEMENT elem) {
+    // adds unique elem to the set
+    if (_unique) {
+        if (contains(elem)) {
             return;
         }
     }
-    // creates a new node to be added to the set
-    SetNode<ITEM> *newNode = new SetNode<ITEM>(data);
-    // adds the new node to the set
-    cout << "adding " << data << endl;
-    _head->next->prev = newNode;
-    newNode->next = _head->next;
-    _head->next = newNode;
-    newNode->prev = _head;
-    _size++;
-}
-
-
-template<typename ITEM>
-void Set<ITEM>::remove(ITEM data) {
-    // checks to makes sure the data is in the set
-    if (!contains(data)) {
+    if (_size == capacity() && _resizable) {
+        resize();
+    }
+    if (_size == 0) {
+        _head = new SetNode<ELEMENT>(elem);
+        _tail = _head;
+        _size++;
+    } else if ((!contains(elem)) && (_size < _capacity) && _unique) {
+        SetNode<ELEMENT> *newNode = new SetNode<ELEMENT>(elem);
+        if (_sorted) {
+            if (newNode->_element < _head->_element) {
+                newNode->_next = _head;
+                _head->_prev = newNode;
+                _head = newNode;
+            } else if (newNode->_element > _tail->_element) {
+                _tail->_next = newNode;
+                newNode->_prev = _tail;
+                _tail = newNode;
+            } else {
+                SetNode<ELEMENT> *temp = _head;
+                while (temp->_next != nullptr && temp->_next->_element < newNode->_element) {
+                    temp = temp->_next;
+                }
+                newNode->_next = temp->_next;
+                temp->_next = newNode;
+                newNode->_prev = temp;
+                if (newNode->_next != nullptr) {
+                    newNode->_next->_prev = newNode;
+                }
+            }
+        } else {
+            newNode->_next = _head;
+            _head->_prev = newNode;
+            _head = newNode;
+        }
+        _size++;
+    } else if ((_size < _capacity) && !_unique) {
+        SetNode<ELEMENT> *newNode = new SetNode<ELEMENT>(elem);
+        if (_sorted) {
+            if (newNode->_element < _head->_element) {
+                newNode->_next = _head;
+                _head->_prev = newNode;
+                _head = newNode;
+            } else if (newNode->_element > _tail->_element) {
+                _tail->_next = newNode;
+                newNode->_prev = _tail;
+                _tail = newNode;
+            } else {
+                SetNode<ELEMENT> *temp = _head;
+                while (temp->_next != nullptr && temp->_next->_element < newNode->_element) {
+                    temp = temp->_next;
+                }
+                newNode->_next = temp->_next;
+                temp->_next = newNode;
+                newNode->_prev = temp;
+                if (newNode->_next != nullptr) {
+                    newNode->_next->_prev = newNode;
+                }
+            }
+        } else {
+            newNode->_next = _head;
+            _head->_prev = newNode;
+            _head = newNode;
+        }
+        _size++;
+    } else {
         return;
     }
-    // finds the node to be removed
-    SetNode<ITEM> *node = _head->next;
-    while (node->data != data) {
-        node = node->next;
-    }
-    // removes the node from the set
-    node->prev->next = node->next;
-    node->next->prev = node->prev;
-    delete node;
-    _size--;
-    if (_size < _capacity / 4) {
-        if (_resizable) {
-            _capacity /= 2;
-        }
-    }
 }
 
-template<typename ITEM>
-bool Set<ITEM>::contains(ITEM data) {
-    // iterates through the set to see if the data is in the set
-    for (auto it = begin(); it != end(); ++it) {
-        if (*it == data) {
+template<typename ELEMENT>
+void Set<ELEMENT>::remove(ELEMENT elem, bool all) {
+    // removes elem from the set
+    if (_size == 0) {
+        return;
+    }
+    do {
+        SetNode<ELEMENT> *current = _head;
+        while (current != nullptr) {
+            if (current->_element == elem) {
+                if (current == _head) {
+                    _head = current->_next;
+                    if (_head != nullptr) {
+                        _head->_prev = nullptr;
+                    }
+                } else if (current == _tail) {
+                    _tail = current->_prev;
+                    if (_tail != nullptr) {
+                        _tail->_next = nullptr;
+                    }
+                } else {
+                    current->_prev->_next = current->_next;
+                    current->_next->_prev = current->_prev;
+                }
+                delete current;
+                _size--;
+                return;
+            }
+            current = current->_next;
+        }
+    } while (all && elementCount(elem) > 0);
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::contains(ELEMENT elem) {
+    // returns true if the set contains the elem
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        if (current->_element == elem) {
             return true;
         }
+        current = current->_next;
     }
     return false;
 }
 
-template<typename ITEM>
-ITEM Set<ITEM>::get(int i) {
-    // returns the ith element in the set
+template<typename ELEMENT>
+ELEMENT Set<ELEMENT>::get(int i) {
+    // returns the elem at index i
     if (i < 0 || i >= _size) {
-        throw out_of_range("index out of range");
+        return NULL;
     }
-    SetNode<ITEM> *current = _head->next;
+    SetNode<ELEMENT> *current = _head;
     for (int j = 0; j < i; j++) {
-        current = current->next;
+        current = current->_next;
     }
-    return current->data;
+    return current->_element;
 }
 
-template<typename ITEM>
-ITEM Set<ITEM>::pickRandom() {
-    if (isEmpty()) {
-        throw std::out_of_range("Empty bag");
+template<typename ELEMENT>
+ELEMENT Set<ELEMENT>::getElement(ELEMENT elem) {
+    // returns the elem at index i
+    if (_size == 0) {
+        return NULL;
     }
-    // generate using twister
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, _size - 1);
-    int i = dis(gen);
-    return get(i);
-}
-
-template<typename ITEM>
-ITEM Set<ITEM>::removeRandom() {
-    if (isEmpty()) {
-        throw std::out_of_range("Empty bag");
-    }
-    // generate using twister
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<> dis(0, _size - 1);
-    int i = dis(gen);
-    return remove(get(i));
-}
-
-template<typename ITEM>
-void Set<ITEM>::sort() {
-    // sorts the set using insertion sort
-    SetNode<ITEM> *current = _head->next;
-    while (current != _tail) {
-        SetNode<ITEM> *temp = current->next;
-        while (temp != _tail) {
-            if (temp->data < current->data) {
-                // swaps the data
-                ITEM tempData = temp->data;
-                temp->data = current->data;
-                current->data = tempData;
-            }
-            temp = temp->next;
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        if (current->_element == elem) {
+            return current->_element;
         }
-        current = current->next;
+        current = current->_next;
+    }
+    return NULL;
+}
+
+template<typename ELEMENT>
+ELEMENT Set<ELEMENT>::pickRandom() {
+    if (_size == 0) {
+        throw std::out_of_range("Empty bag");
+    }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, _size - 1);
+    int i = dis(gen);
+    SetNode<ELEMENT> *current = _head;
+    for (int j = 0; j < i; j++) {
+        current = current->_next;
+    }
+    return current->_element;
+}
+
+template<typename ELEMENT>
+ELEMENT Set<ELEMENT>::removeRandom() {
+    if (_size == 0) {
+        throw std::out_of_range("Empty bag");
+    }
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(0, _size - 1);
+    int i = dis(gen);
+    SetNode<ELEMENT> *current = _head;
+    for (int j = 0; j < i; j++) {
+        current = current->_next;
+    }
+    ELEMENT _element = current->_element;
+    if (current == _head) {
+        _head = current->_next;
+        if (_head != nullptr) {
+            _head->_prev = nullptr;
+        }
+    } else if (current == _tail) {
+        _tail = current->_prev;
+        if (_tail != nullptr) {
+            _tail->_next = nullptr;
+        }
+    } else {
+        current->_prev->_next = current->_next;
+        current->_next->_prev = current->_prev;
+    }
+    delete current;
+    _size--;
+    return _element;
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::sort(SortType sortType) {
+    // sorts the set
+    if (_size == 0) {
+        return;
+    }
+    std::srand(std::time(0));
+    vector<ELEMENT> v;
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        v.push_back(current->_element);
+        current = current->_next;
+    }
+    // sort the vecotr occording to the sort type
+    switch (sortType) {
+        case SortType::ASCENDING:
+            std::sort(v.begin(), v.end(), std::greater<ELEMENT>());
+            break;
+        case SortType::DESCENDING:
+            std::sort(v.begin(), v.end());
+            break;
+        case SortType::RANDOM:
+            std::random_shuffle(v.begin(), v.end());
+            break;
+    }
+    clear();
+    for (int i = 0; i < v.size(); i++) {
+        add(v[i]);
     }
 }
 
-template<typename ITEM>
-void Set<ITEM>::shuffle() {
-    // shuffles the set using the Fisher-Yates algorithm
-    for (int i = 0; i < _size; i++) {
-        // generate using twister
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dis(0, _size - 1);
-        int j = dis(gen);
-        // swaps the data
-        ITEM tempData = get(i);
-        remove(get(i));
-        insert(tempData);
+template<typename ELEMENT>
+void Set<ELEMENT>::shuffle() {
+    if (_size == 0) {
+        return;
     }
+    sort(RANDOM);
 }
 
-template<typename ITEM>
-void Set<ITEM>::print() {
-    // use iterator to print the set
-    for (auto it = begin(); it != end(); ++it) {
-        cout << *it << " ";
-    }
-    cout << endl;
-}
-
-template<typename ITEM>
-void Set<ITEM>::printReverse() {
-    // use a reverse iterator to print the set in reverse order
-    for (auto it = rbegin(); it != rend(); ++it) {
-        cout << *it << " ";
-    }
-    cout << endl;
-}
-
-template<typename ITEM>
-int Set<ITEM>::capacity() {
-    return _capacity;
-}
-
-template<typename ITEM>
-bool Set<ITEM>::isEmpty() {
-    return _size == 0;
-}
-
-template<typename ITEM>
-bool Set<ITEM>::isFull() {
-    return _size == _capacity;
-}
-
-template<typename ITEM>
-void Set<ITEM>::resize() {
-    // cheks tosee if it is full and if it is it doubles the capacity
-    if (_size == _capacity) {
-        _capacity *= 2;
-    }
-    // cheks to see if it is at 1/4 capacity and if it is it halves the capacity
-    else if (_size == _capacity / 4) {
-        _capacity /= 2;
-    }
-}
-
-template<typename ITEM>
-void Set<ITEM>::clear() {
-    SetNode<ITEM> *current = _head->next;
-    while (current != _tail) {
-        SetNode<ITEM> *next = current->next;
+template<typename ELEMENT>
+void Set<ELEMENT>::clear() {
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        SetNode<ELEMENT> * next = current->_next;
         delete current;
         current = next;
     }
-    _head->next = _tail;
-    _tail->prev = _head;
+    _head = nullptr;
+    _tail = nullptr;
     _size = 0;
 }
 
-template<typename ITEM>
-int Set<ITEM>::size() {
+template<typename ELEMENT>
+void Set<ELEMENT>::print() {
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        std::cout << current->_element << " ";
+        current = current->_next;
+    }
+    std::cout << std::endl;
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::printReverse() {
+    SetNode<ELEMENT> *current = _tail;
+    while (current != nullptr) {
+        std::cout << current->_element << " ";
+        current = current->_prev;
+    }
+    std::cout << std::endl;
+}
+/**
+ * @brief checks how many elements are in the set
+ * @return  int: the size of the set
+ */
+template<typename ELEMENT>
+int Set<ELEMENT>::size() {
     return _size;
+}
+/**
+ * @brief counts how many times the given element is in the set
+ * @tparam ELEMENT
+ * @param elem
+ * @return int: the number of times the element is in the set
+ */
+template<typename ELEMENT>
+int Set<ELEMENT>::elementCount(ELEMENT elem) {
+    if (_size == 0) {
+        return 0;
+    }
+    if (_size == 1) {
+        if (_head->_element == elem) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    if (_unique && contains(elem)) {
+        return 1;
+    }
+    SetNode<ELEMENT> *current = _head;
+    int count = 0;
+    while (current != nullptr) {
+        if (current->_element == elem) {
+            count++;
+        }
+        current = current->_next;
+    }
+    return count;
+}
+/**
+ * @brief checks the capacity of the set
+ * @return int: the capacity of the set
+ */
+template<typename ELEMENT>
+int Set<ELEMENT>::capacity() {
+    return _capacity;
 }
 
 
-template<typename ITEM>
-bool Set<ITEM>::operator==(const Set<ITEM> &other) {
-    if (_size != other._size) {
-        return false;
+/**
+ * @brief checks if the set is full
+ * @tparam ELEMENT
+ * @return  true if the set is full, false otherwise
+ */
+template<typename ELEMENT>
+bool Set<ELEMENT>::isFull() {
+    return _size == _capacity;
+}
+/**
+ * @brief resize the capacity of the set
+ */
+template<typename ELEMENT>
+void Set<ELEMENT>::resize() {
+    // if the set is full, double the capacity
+    // if the set is 1/4 full, halve the capacity
+    if (_size == _capacity) {
+        _capacity *= 2;
+    } else if (_size == _capacity / 4) {
+        _capacity /= 2;
     }
-    for (auto it = begin(); it != end(); ++it) {
-        if (other.find(*it) == other.end()) {
+}
+/**
+ * @brief sets the resizable flag to true or false
+ * @param resizable true or false to set the resizable flag
+ */
+template<typename ELEMENT>
+void Set<ELEMENT>::setResizable(bool resizable) {
+    _resizable = resizable;
+}
+
+template<typename ELEMENT>
+string Set<ELEMENT>::toString() {
+    stringstream ss;
+    SetNode<ELEMENT> *current = _head;
+    ss << "{ ";
+    while (current != nullptr) {
+        ss << current->_element << " ";
+        current = current->_next;
+    }
+    ss << "}";
+    return ss.str();
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::setSorted(bool sorted) {
+    _sorted = sorted;
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::setUnique(bool unique) {
+    _unique = unique;
+}
+
+template<typename ELEMENT>
+SetNode<ELEMENT> *Set<ELEMENT>::getHead() {
+    return _head;
+}
+
+template<typename ELEMENT>
+SetNode<ELEMENT> *Set<ELEMENT>::getTail() {
+    return _tail;
+}
+
+
+template<typename T>
+ostream &operator<<(ostream &os, Set<T> &s) {
+    os << s.toString();
+    return os;
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::isSubsetOf(Set<ELEMENT> other) {
+    unordered_set<ELEMENT> otherSet;
+    unordered_set<ELEMENT> thisSet;
+    SetNode<ELEMENT> *current = other._head;
+    SetNode<ELEMENT> *current2 = _head;
+    while (current != nullptr || current2 != nullptr) {
+        if (current != nullptr) {
+            otherSet.insert(current->_element);
+            current = current->_next;
+        }
+        if (current2 != nullptr) {
+            thisSet.insert(current2->_element);
+            current2 = current2->_next;
+        }
+    }
+    current = _head;
+    while (current != nullptr) {
+        if (otherSet.find(current->_element) == otherSet.end()) {
             return false;
         }
+        current = current->_next;
+    }
+    return true && (otherSet.size() == thisSet.size());
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::isPropersubsetOf(Set<ELEMENT> other) {
+    unordered_set<ELEMENT> otherSet;
+    unordered_set<ELEMENT> thisSet;
+    SetNode<ELEMENT> *current = other._head;
+    SetNode<ELEMENT> *current2 = _head;
+    while (current != nullptr || current2 != nullptr) {
+        if (current != nullptr) {
+            otherSet.insert(current->_element);
+            current = current->_next;
+        }
+        if (current2 != nullptr) {
+            thisSet.insert(current2->_element);
+            current2 = current2->_next;
+        }
+    }
+    current = _head;
+    while (current != nullptr) {
+        if (otherSet.find(current->_element) == otherSet.end()) {
+            return false;
+        }
+        current = current->_next;
+    }
+    return true && (otherSet.size() > thisSet.size());
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::isSupersetOf(Set<ELEMENT> other) {
+    // if the other set is a subset of this set, then this set is a superset
+    return other.isSubsetOf(*this);
+}
+template<typename ELEMENT>
+bool Set<ELEMENT>::iaProperSupersetOf(Set<ELEMENT> other) {
+    // if the other set is a proper subset of this set, then this set is a proper superset
+    return other.isPropersubsetOf(*this);
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::isDisjointFrom(Set<ELEMENT> other) {
+    // if there are no elements in common in the two sets, then they are disjoint
+    unordered_set<ELEMENT> otherSet;
+    unordered_set<ELEMENT> thisSet;
+    SetNode<ELEMENT> *current = other._head;
+    SetNode<ELEMENT> *current2 = _head;
+    while (current != nullptr || current2 != nullptr) {
+        if (current != nullptr) {
+            otherSet.insert(current->_element);
+            current = current->_next;
+        }
+        if (current2 != nullptr) {
+            thisSet.insert(current2->_element);
+            current2 = current2->_next;
+        }
+    }
+    current = _head;
+    while (current != nullptr) {
+        if (otherSet.find(current->_element) != otherSet.end()) {
+            return false;
+        }
+        current = current->_next;
     }
     return true;
 }
 
-template<typename ITEM>
-bool Set<ITEM>::operator!=(const Set<ITEM> &other) {
-    return !(*this == other);
-}
-
-template<typename ITEM>
-bool Set<ITEM>::operator<(const Set<ITEM> &other) {
-    if (_size < other._size) {
-        return true;
-    }
-    return false;
-}
-
-template<typename ITEM>
-bool Set<ITEM>::operator>(const Set<ITEM> &other) {
-    if (_size > other._size) {
-        return true;
-    }
-    return false;
-}
-
-template<typename ITEM>
-bool Set<ITEM>::operator>=(const Set<ITEM> &other) {
-    if (*this > other || *this == other) {
-        return true;
-    }
-    return false;
-}
-
-template<typename ITEM>
-bool Set<ITEM>::operator<=(const Set<ITEM> &other) {
-    if (*this < other || *this == other) {
-        return true;
-    }
-    return false;
-}
-
-template<typename T>
-ostream &operator<<(ostream &os, Set<T> &s) {
-    os << "{";
-    // use iterator to print the set but not the tail
-    for (auto it = s.begin(); it != s.end(); ++it) {
-        os << *it << " ";
-    }
-    os << "}";
-    return os;
-}
-
-template<typename ITEM>
-Set<ITEM> Set<ITEM>::operator[](int i) {
-    Set<ITEM> temp;
-    for (auto it = begin(); it != end(); ++it) {
-        if (i == 0) {
-            temp.insert(*it);
+template<typename ELEMENT>
+bool Set<ELEMENT>::isEqualTo(Set<ELEMENT> other) {
+    // if the two sets are equal, then they are equal
+    unordered_set<ELEMENT> otherSet;
+    unordered_set<ELEMENT> thisSet;
+    SetNode<ELEMENT> *current = other._head;
+    SetNode<ELEMENT> *current2 = _head;
+    while (current != nullptr || current2 != nullptr) {
+        if (current != nullptr) {
+            otherSet.insert(current->_element);
+            current = current->_next;
         }
-        i--;
+        if (current2 != nullptr) {
+            thisSet.insert(current2->_element);
+            current2 = current2->_next;
+        }
     }
-    return temp;
+    current = _head;
+    while (current != nullptr) {
+        if (otherSet.find(current->_element) == otherSet.end()) {
+            return false;
+        }
+        current = current->_next;
+    }
+    return true && (otherSet.size() == thisSet.size());
+}
+/**
+ * @brief checks if the set is theempty set
+ * @return  true if the set is empty, false otherwise
+ */
+template<typename ELEMENT>
+bool Set<ELEMENT>::isEmptySet() {
+    return _head == nullptr;
 }
 
-template<typename ITEM>
-SetNode<ITEM> *Set<ITEM>::operator()(ITEM data) {
-    SetNode<ITEM> *current = _head->next;
-    while (current != _tail) {
-        if (current->data == data) {
+
+template<typename ELEMENT>
+vector<vector<char>> Set<ELEMENT>::getPowerSet(bool print) {
+    vector<string> result;
+    result.push_back("");
+    stringstream ss;
+    // convert the contesnts of the set to a string
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        ss << current->_element;
+        current = current->_next;
+    }
+    string s = ss.str();
+    powerSetHelper(s, "", result);
+    vector<vector<char>> v;
+    //reverse the result vector
+    // convert the strings back to the elements
+    for (string str : result) {
+        vector<char> temp;
+        for (char c : str) {
+            temp.push_back(c);
+        }
+        reverse(temp.begin(), temp.end());
+        v.push_back(temp);
+    }
+    if (print) {
+        int i = 1;
+        cout << "power set:\n";
+        for (vector<char> vc : v) {
+            cout << i << ": ";
+            for (char c : vc) {
+                cout << c << " ";
+            }
+            i++;
+            cout << endl;
+        }
+    }
+    return v;
+}
+
+template<typename ELEMENT>
+SetNode<ELEMENT> *Set<ELEMENT>::getNode(ELEMENT elem) {
+    SetNode<ELEMENT> *current = _head;
+    while (current != nullptr) {
+        if (current->_element == elem) {
             return current;
         }
-        current = current->next;
+        current = current->_next;
     }
     return nullptr;
 }
 
-template<typename ITEM>
-void Set<ITEM>::setResizable(bool resizable) {
-    _resizable = resizable;
-}
+void powerSetHelper(string s, const string& o, vector<string> &v) {
+    if (s.length() == 0) {
+        v.push_back(o);
+        return;
+    }
+    powerSetHelper(s.substr(1), o + s[0], v);
+    powerSetHelper(s.substr(1), o, v);
+    // remove all the duplicates from the vector
+    //sort(v.begin(), v.end());
 
-template<typename ITEM>
-string Set<ITEM>::toString() {
-    return "";
+    // sort by length and then lexicographically
+    sort(v.begin(), v.end(), [](const string& s1, const string& s2) {
+        if (s1.length() == s2.length()) {
+            return s1 < s2;
+        } else {
+            return s1.length() < s2.length();
+        }
+    });
+    v.erase(unique(v.begin(), v.end()), v.end());
 }
-
 
 #endif //SET_SET_H
