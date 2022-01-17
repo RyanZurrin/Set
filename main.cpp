@@ -3,6 +3,8 @@
 int main() {
     // test the Set class here
     Set<char> s;
+    s.setUnique(false);
+    s.setID(getName(s));
     s.add('A');
     s.add('B');
     s.add('Z');
@@ -11,16 +13,19 @@ int main() {
     s.add('S');
     s.add('X');
     s.add('Y');
-
+    s.add('K');
+    cout << s << endl;
     Set<char> s2;
+    s2.setID(getName(s2));
     s2.add('A');
     s2.add('B');
-    s2.add('L');
+    s2.add('Z');
     s2.add('K');
     s2.add('Q');
     s2.add('K');
-
+    cout << s2 << endl;
     Set<char> s3;
+    s3.setID(getName(s3));
     s3.setSorted(true);
     s3.setUnique(false);
     s3.add('Y');
@@ -28,13 +33,16 @@ int main() {
     s3.add('C');
     s3.add('N');
     s3.add('M');
-    cout << "s3: " << s3 << endl;
+    cout << s3 << endl;
+    s.printUnion(s3);
+    s.printIntersection(s3);
+    s.printSymmetricDifference(s3);
 
     Set<char> s4;
     s4.setUnique(false);
     s4 = s + s2;
-    cout << "s4: " << s4 << endl;
-    vector<vector<char>> v = s4.getPowerSet(true);
+    cout << s4 << endl;
+   // vector<vector<char>> v = s4.getPowerSet(true);
 
     std::cout << "s isSubsetOf s2: " << s.isSubsetOf(s2) << std::endl;
     std::cout << "s isProperSubsetOf s2: " << s.isPropersubsetOf(s2) << std::endl;
@@ -67,7 +75,6 @@ int main() {
     std::cout << "s3 isProperSupersetOf s2: " << s3.isProperSupersetOf(s2) << std::endl;
     std::cout << "s3 isDisjointFrom s: " << s3.isDisjointFrom(s) << std::endl;
     std::cout << "s3 isDisjointFrom s2: " << s3.isDisjointFrom(s2) << std::endl;
-
 
 
     return 0;

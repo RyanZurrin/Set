@@ -6,13 +6,17 @@
 #define SET_SET_H
 #include <bits/stdc++.h>
 using namespace std;
+// define getName to set the name of a variable to the object id
+#define getName(x) #x
 void powerSetHelper(string s, const string& o, vector<string> &v);
+static int object_count = 0;
 // buld an enum type for the differnt ways you can sort
 enum SortType {
     ASCENDING,
     DESCENDING,
     RANDOM
 };
+
 
 template<typename ELEMENT>
 class SetNode {
@@ -35,15 +39,17 @@ template<typename ELEMENT>
 class Set {
     SetNode<ELEMENT> *_head;
     SetNode<ELEMENT> *_tail;
+    string _id;
     int _size{};
     int _capacity{};
     bool _resizable{};
     bool _sorted{};
     bool _unique{};
+    static string countToID(int count);
 public:
-    Set(int capacity = INT_MAX, bool sorted = false, bool unique = true); // constructor
-    Set(ELEMENT elem, int capacity = INT_MAX, bool sorted = false, bool unique = true); // constructor
-    Set(vector<ELEMENT> elements, bool sorted = false, bool unique = true); // constructor
+    Set(int capacity = INT_MAX, bool sorted = false, bool unique = true, string id = countToID(object_count)); // constructor
+    Set(ELEMENT elem, int capacity = INT_MAX, bool sorted = false, bool unique = true,string id = countToID(object_count)); // constructor
+    Set(vector<ELEMENT> elements, bool sorted = false, bool unique = true, string id = countToID(object_count)); // constructor
     Set(Set<ELEMENT> &other); // copy constructor
     Set(Set<ELEMENT> &&other);// move constructor
     Set<ELEMENT>& operator=(const Set<ELEMENT> &other); // assignment operator
@@ -52,6 +58,7 @@ public:
     void add(ELEMENT elem);
     void remove(ELEMENT elem, bool all = false);
     bool contains(ELEMENT elem);
+    void setID(string id);
     ELEMENT get(int i);
     ELEMENT getElement(ELEMENT elem);
     SetNode<ELEMENT>* getNode(ELEMENT elem);
@@ -61,6 +68,9 @@ public:
     void shuffle();
     void clear();
     void print();
+    void printUnion(Set<ELEMENT> &other);
+    void printIntersection(Set<ELEMENT> &other);
+    void printSymmetricDifference(Set<ELEMENT> &other);
     void printReverse();
     int size();
     int elementCount(ELEMENT elem);
@@ -83,6 +93,10 @@ public:
     bool isDisjointFrom(Set<ELEMENT> other);
     bool isEqualTo(Set<ELEMENT> other);
     bool isEmptySet();
+    bool sorted();
+    bool unique();
+    bool resizable();
+    int getObjectCount();
 
     string toString();
     SetNode<ELEMENT>* operator()(ELEMENT elem) {
@@ -144,7 +158,7 @@ public:
     // overload the + operator to add two sets together
     Set<ELEMENT> operator+(const Set<ELEMENT> &other) {
         Set<ELEMENT> result;
-        bool unique = this->_unique && other._unique;
+        bool unique = (this->_unique && other._unique);
         bool sorted = this->_sorted && other._sorted;
         result.setUnique(unique);
         result.setSorted(sorted);
@@ -250,7 +264,7 @@ public:
         return *this;
     }
     // overload the / operator to find the symmetric difference of two sets
-    Set<ELEMENT> operator/(const Set<ELEMENT> &other) {
+    Set<ELEMENT> operator/(Set<ELEMENT> &other) {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
@@ -428,7 +442,9 @@ public:
 };
 
 template<typename ELEMENT>
-Set<ELEMENT>::Set(int capacity, bool sorted, bool unique) {
+Set<ELEMENT>::Set(int capacity, bool sorted, bool unique,string id) {
+    object_count++;
+    _id = id;
     _head = nullptr;
     _tail = nullptr;
     _size = 0;
@@ -439,7 +455,9 @@ Set<ELEMENT>::Set(int capacity, bool sorted, bool unique) {
 }
 
 template<typename ELEMENT>
-Set<ELEMENT>::Set(ELEMENT elem, int capacity, bool sorted, bool unique) {
+Set<ELEMENT>::Set(ELEMENT elem, int capacity, bool sorted, bool unique, string id) {
+    object_count++;
+    _id = id;
     _head = nullptr;
     _tail = nullptr;
     _size = 0;
@@ -451,7 +469,9 @@ Set<ELEMENT>::Set(ELEMENT elem, int capacity, bool sorted, bool unique) {
 }
 
 template<typename ELEMENT>
-Set<ELEMENT>::Set(vector<ELEMENT> elements, bool sorted, bool unique) {
+Set<ELEMENT>::Set(vector<ELEMENT> elements, bool sorted, bool unique, string id) {
+    object_count++;
+    _id = id;
     _head = nullptr;
     _tail = nullptr;
     _size = 0;
@@ -466,6 +486,8 @@ Set<ELEMENT>::Set(vector<ELEMENT> elements, bool sorted, bool unique) {
 
 template<typename ELEMENT>
 Set<ELEMENT>::Set(Set<ELEMENT> &other) {
+    object_count++;
+    _id = countToID(object_count);
     _head = nullptr;
     _tail = nullptr;
     _size = 0;
@@ -480,6 +502,8 @@ Set<ELEMENT>::Set(Set<ELEMENT> &other) {
 
 template<typename ELEMENT>
 Set<ELEMENT>::Set(Set<ELEMENT> &&other) {
+    object_count++;
+    _id = countToID(object_count);
     _head = other._head;
     _tail = other._tail;
     _size = other._size;
@@ -498,6 +522,8 @@ Set<ELEMENT>::Set(Set<ELEMENT> &&other) {
 
 template<typename ELEMENT>
 Set<ELEMENT> &Set<ELEMENT>::operator=(const Set<ELEMENT> &other) {
+    object_count++;
+    _id = countToID(object_count);
     if (this != &other) {
         clear();
         for (ELEMENT elem : other) {
@@ -763,6 +789,7 @@ void Set<ELEMENT>::clear() {
         delete current;
         current = next;
     }
+    object_count--;
     _head = nullptr;
     _tail = nullptr;
     _size = 0;
@@ -771,20 +798,24 @@ void Set<ELEMENT>::clear() {
 template<typename ELEMENT>
 void Set<ELEMENT>::print() {
     SetNode<ELEMENT> *current = _head;
+    cout << _id << ": " << "{ ";
     while (current != nullptr) {
         std::cout << current->_element << " ";
         current = current->_next;
     }
+    cout << "}" << endl;
     std::cout << std::endl;
 }
 
 template<typename ELEMENT>
 void Set<ELEMENT>::printReverse() {
     SetNode<ELEMENT> *current = _tail;
+    cout << _id << ": " << "{ ";
     while (current != nullptr) {
         std::cout << current->_element << " ";
         current = current->_prev;
     }
+    cout << "}" << endl;
     std::cout << std::endl;
 }
 /**
@@ -871,7 +902,7 @@ template<typename ELEMENT>
 string Set<ELEMENT>::toString() {
     stringstream ss;
     SetNode<ELEMENT> *current = _head;
-    ss << "{ ";
+    ss << _id << ": " << "{ ";
     while (current != nullptr) {
         ss << current->_element << " ";
         current = current->_next;
@@ -1109,6 +1140,63 @@ SetNode<ELEMENT> *Set<ELEMENT>::getNode(ELEMENT elem) {
     }
     return nullptr;
 }
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::sorted() {
+    return _sorted;
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::unique() {
+    return _unique;
+}
+
+template<typename ELEMENT>
+bool Set<ELEMENT>::resizable() {
+    return _resizable;
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::printUnion(Set<ELEMENT> &other) {
+    Set<ELEMENT> tmp;
+    tmp = other  *  *this;
+    cout << this->_id << " U " << other._id << ": ";
+    cout << "{ ";
+    for (ELEMENT elem : tmp) {
+        cout << elem << " ";
+    }
+    cout << "}" << endl;
+
+}
+
+
+template<typename ELEMENT>
+void Set<ELEMENT>::printIntersection(Set<ELEMENT> &other) {
+    Set<ELEMENT> tmp;
+    tmp = other % *this;
+    cout << this->_id << " ∩ " << other._id << ": ";
+    cout << "{ ";
+    for (ELEMENT elem : tmp) {
+        cout << elem << " ";
+    }
+    cout << "}" << endl;
+}
+
+
+template<typename ELEMENT>
+void Set<ELEMENT>::printSymmetricDifference(Set<ELEMENT> &other) {
+    Set<ELEMENT> tmp;
+    tmp = other / *this;
+    cout << this->_id << " Δ " << other._id << ": ";
+    cout << "{ ";
+    for (ELEMENT elem : tmp) {
+        cout << elem << " ";
+    }
+    cout << "}" << endl;
+}
+
+
+
 // use dynamic programmin to find all  subsequences of a string
 void powerSetHelper(string s, const string& o, vector<string> &v) {
     if (s.length() == 0) {
@@ -1124,6 +1212,75 @@ void powerSetHelper(string s, const string& o, vector<string> &v) {
             return s1.length() < s2.length();
         }
     });
+}
+template<typename ELEMENT>
+string Set<ELEMENT>::countToID(int count) {
+    switch (count) {
+        case 0:
+            return "A"; break;
+        case 1:
+            return "B"; break;
+        case 2:
+            return "C"; break;
+        case 3:
+            return "D"; break;
+        case 4:
+            return "E"; break;
+        case 5:
+            return "F"; break;
+        case 6:
+            return "G"; break;
+        case 7:
+            return "H"; break;
+        case 8:
+            return "I"; break;
+        case 9:
+            return "J"; break;
+        case 10:
+            return "K"; break;
+        case 11:
+            return "L"; break;
+        case 12:
+            return "M"; break;
+        case 13:
+            return "N"; break;
+        case 14:
+            return "O"; break;
+        case 15:
+            return "P"; break;
+        case 16:
+            return "Q"; break;
+        case 17:
+            return "R"; break;
+        case 18:
+            return "S"; break;
+        case 19:
+            return "T"; break;
+        case 20:
+            return "U"; break;
+        case 21:
+            return "V"; break;
+        case 22:
+            return "W"; break;
+        case 23:
+            return "X"; break;
+        case 24:
+            return "Y"; break;
+        case 25:
+            return "Z"; break;
+        default:
+            return "ABC";
+    }
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::setID(string id) {
+    _id = id;
+}
+
+template<typename ELEMENT>
+int Set<ELEMENT>::getObjectCount() {
+    return object_count;
 }
 
 
