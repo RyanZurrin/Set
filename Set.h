@@ -79,23 +79,25 @@ public:
     bool isSubsetOf(Set<ELEMENT> other);
     bool isPropersubsetOf(Set<ELEMENT> other);
     bool isSupersetOf(Set<ELEMENT> other);
-    bool iaProperSupersetOf(Set<ELEMENT> other);
+    bool isProperSupersetOf(Set<ELEMENT> other);
     bool isDisjointFrom(Set<ELEMENT> other);
     bool isEqualTo(Set<ELEMENT> other);
     bool isEmptySet();
 
     string toString();
     SetNode<ELEMENT>* operator()(ELEMENT elem) {
-        return getElement(elem);
+        return this->getNode(elem);
     }
-    Set<ELEMENT> operator[](int i) {
-        return get(i);
+    Set<ELEMENT> operator[] (ELEMENT elem) {
+        Set<ELEMENT> temp;
+        temp.add(elem);
+        return temp;
     }
 
     template<typename T>
     friend ostream& operator<<(ostream& os, Set<T>& s);
 
-    bool operator==(const Set<ELEMENT> &other) {
+    bool operator==(const Set<ELEMENT> &other) const {
         if (this->_size != other._size) {
             return false;
         }
@@ -112,19 +114,19 @@ public:
         }
         return true;
     }
-    bool operator!=(const Set<ELEMENT> &other) {
+    bool operator!=(const Set<ELEMENT> &other)const {
         return !(*this == other);
     }
-    bool operator<(const Set<ELEMENT> &other) {
+    bool operator<(const Set<ELEMENT> &other)const {
         return this->_size < other._size;
     }
-    bool operator>(const Set<ELEMENT> &other) {
+    bool operator>(const Set<ELEMENT> &other)const {
         return this->_size > other._size;
     }
-    bool operator<=(const Set<ELEMENT> &other) {
+    bool operator<=(const Set<ELEMENT> &other)const {
         return this->_size <= other._size;
     }
-    bool operator>=(const Set<ELEMENT> &other) {
+    bool operator>=(const Set<ELEMENT> &other)const {
         return this->_size >= other._size;
     }
 
@@ -141,11 +143,22 @@ public:
     }
     // overload the + operator to add two sets together
     Set<ELEMENT> operator+(const Set<ELEMENT> &other) {
-        Set<ELEMENT> temp = *this;
-        for (int i = 0; i < other.size(); i++) {
-            temp.add(other[i]);
+        Set<ELEMENT> result;
+        bool unique = this->_unique && other._unique;
+        bool sorted = this->_sorted && other._sorted;
+        result.setUnique(unique);
+        result.setSorted(sorted);
+        SetNode<ELEMENT> *temp = this->_head;
+        while (temp != nullptr) {
+            result.add(temp->_element);
+            temp = temp->_next;
         }
-        return temp;
+        temp = other._head;
+        while (temp != nullptr) {
+            result.add(temp->_element);
+            temp = temp->_next;
+        }
+        return result;
     }
     // overload the += operator to add a set to another set
     Set<ELEMENT>& operator+=(const Set<ELEMENT> &other) {
@@ -166,7 +179,7 @@ public:
         return *this;
     }
     // overload the - operator to remove simialr ELEMENTs from one set out of another
-    Set<ELEMENT> operator-(const Set<ELEMENT> &other) const {
+    Set<ELEMENT> operator-(const Set<ELEMENT> &other)const  {
         Set<ELEMENT> temp = *this;
         for (int i = 0; i < other.size(); i++) {
             temp.remove(other[i]);
@@ -181,24 +194,24 @@ public:
         return *this;
     }
     // overload the % operator to find the intersection of two sets
-    Set<ELEMENT> operator%(const Set<ELEMENT> &other) const {
+    Set<ELEMENT> operator%(Set<ELEMENT> &other) const {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
-            if (other.contains(temp->elem)) {
-                result.add(temp->elem);
+            if (other.contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
         return result;
     }
     // overload the %= operator to find the intersection of two sets
-    Set<ELEMENT>& operator%=(const Set<ELEMENT> &other) {
+    Set<ELEMENT>& operator%=(Set<ELEMENT> &other) {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
-            if (other.contains(temp->elem)) {
-                result.add(temp->elem);
+            if (other.contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
@@ -206,50 +219,50 @@ public:
         return *this;
     }
     // overload the * operator to find the union of two sets
-    Set<ELEMENT> operator*(const Set<ELEMENT> &other) const {
+    Set<ELEMENT> operator*(Set<ELEMENT> &other)const  {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
-            result.add(temp->elem);
+            result.add(temp->_element);
             temp = temp->_next;
         }
         temp = other._head;
         while (temp != nullptr) {
-            result.add(temp->elem);
+            result.add(temp->_element);
             temp = temp->_next;
         }
         return result;
     }
     // overload the *= operator to find the union of two sets
-    Set<ELEMENT>& operator*=(const Set<ELEMENT> &other) {
+    Set<ELEMENT>& operator*=(Set<ELEMENT> &other) {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
-            result.add(temp->elem);
+            result.add(temp->_element);
             temp = temp->_next;
         }
         temp = other._head;
         while (temp != nullptr) {
-            result.add(temp->elem);
+            result.add(temp->_element);
             temp = temp->_next;
         }
         *this = result;
         return *this;
     }
     // overload the / operator to find the symmetric difference of two sets
-    Set<ELEMENT> operator/(const Set<ELEMENT> &other) const {
+    Set<ELEMENT> operator/(const Set<ELEMENT> &other) {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
-            if (!other.contains(temp->elem)) {
-                result.add(temp->elem);
+            if (!other.contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
         temp = other._head;
         while (temp != nullptr) {
-            if (!this->contains(temp->elem)) {
-                result.add(temp->elem);
+            if (!this->contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
@@ -260,15 +273,15 @@ public:
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = this->_head;
         while (temp != nullptr) {
-            if (!other.contains(temp->elem)) {
-                result.add(temp->elem);
+            if (!other.contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
         temp = other._head;
         while (temp != nullptr) {
-            if (!this->contains(temp->elem)) {
-                result.add(temp->elem);
+            if (!this->contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
@@ -276,12 +289,12 @@ public:
         return *this;
     }
     // overload the ^ operator to find the complement of a set
-    Set<ELEMENT> operator^(const Set<ELEMENT> &other) const {
+    Set<ELEMENT> operator^(const Set<ELEMENT> &other)const  {
         Set<ELEMENT> result;
         SetNode<ELEMENT>* temp = other._head;
         while (temp != nullptr) {
-            if (!this->contains(temp->elem)) {
-                result.add(temp->elem);
+            if (!this->contains(temp->_element)) {
+                result.add(temp->_element);
             }
             temp = temp->_next;
         }
@@ -370,6 +383,47 @@ public:
     reverse_iterator rend() {
         return reverse_iterator(nullptr);
     }
+    // const iterators
+    class const_iterator {
+    public:
+        const_iterator(SetNode<ELEMENT>* node) : _node(node) {}
+        const_iterator& operator++() {
+            _node = _node->_next;
+            return *this;
+        }
+        const_iterator operator++(int) {
+            const_iterator temp = *this;
+            ++(*this);
+            return temp;
+        }
+        bool operator==(const const_iterator& other) const {
+            return _node == other._node;
+        }
+        bool operator!=(const const_iterator& other) const {
+            return _node != other._node;
+        }
+        const ELEMENT& operator*() {
+            return _node->_element;
+        }
+        // hasNext
+        bool hasNext() {
+            return _node != nullptr;
+        }
+        // next
+        const ELEMENT& next() {
+            const ELEMENT& temp = _node->_element;
+            _node = _node->_next;
+            return temp;
+        }
+    private:
+        SetNode<ELEMENT>* _node;
+    };
+    const_iterator begin() const {
+        return const_iterator(_head);
+    }
+    const_iterator end() const {
+        return const_iterator(nullptr);
+    }
 
 };
 
@@ -455,7 +509,7 @@ Set<ELEMENT> &Set<ELEMENT>::operator=(const Set<ELEMENT> &other) {
 
 template<typename ELEMENT>
 Set<ELEMENT>::~Set() {
-
+    clear();
 }
 
 template<typename ELEMENT>
@@ -515,7 +569,8 @@ void Set<ELEMENT>::add(ELEMENT elem) {
                 _tail = newNode;
             } else {
                 SetNode<ELEMENT> *temp = _head;
-                while (temp->_next != nullptr && temp->_next->_element < newNode->_element) {
+                while (temp->_next != nullptr &&
+                temp->_next->_element < newNode->_element) {
                     temp = temp->_next;
                 }
                 newNode->_next = temp->_next;
@@ -663,6 +718,7 @@ ELEMENT Set<ELEMENT>::removeRandom() {
 template<typename ELEMENT>
 void Set<ELEMENT>::sort(SortType sortType) {
     // sorts the set
+    this->_sorted = true;
     if (_size == 0) {
         return;
     }
@@ -853,8 +909,8 @@ ostream &operator<<(ostream &os, Set<T> &s) {
 
 template<typename ELEMENT>
 bool Set<ELEMENT>::isSubsetOf(Set<ELEMENT> other) {
-    unordered_set<ELEMENT> otherSet;
-    unordered_set<ELEMENT> thisSet;
+    set<ELEMENT> otherSet;
+    set<ELEMENT> thisSet;
     SetNode<ELEMENT> *current = other._head;
     SetNode<ELEMENT> *current2 = _head;
     while (current != nullptr || current2 != nullptr) {
@@ -874,7 +930,11 @@ bool Set<ELEMENT>::isSubsetOf(Set<ELEMENT> other) {
         }
         current = current->_next;
     }
-    return true && (otherSet.size() == thisSet.size());
+    current = nullptr;
+    current2 = nullptr;
+    delete current;
+    delete current2;
+    return true;
 }
 
 template<typename ELEMENT>
@@ -900,6 +960,10 @@ bool Set<ELEMENT>::isPropersubsetOf(Set<ELEMENT> other) {
         }
         current = current->_next;
     }
+    current = nullptr;
+    current2 = nullptr;
+    delete current;
+    delete current2;
     return true && (otherSet.size() > thisSet.size());
 }
 
@@ -909,7 +973,7 @@ bool Set<ELEMENT>::isSupersetOf(Set<ELEMENT> other) {
     return other.isSubsetOf(*this);
 }
 template<typename ELEMENT>
-bool Set<ELEMENT>::iaProperSupersetOf(Set<ELEMENT> other) {
+bool Set<ELEMENT>::isProperSupersetOf(Set<ELEMENT> other) {
     // if the other set is a proper subset of this set, then this set is a proper superset
     return other.isPropersubsetOf(*this);
 }
@@ -938,6 +1002,10 @@ bool Set<ELEMENT>::isDisjointFrom(Set<ELEMENT> other) {
         }
         current = current->_next;
     }
+    current = nullptr;
+    current2 = nullptr;
+    delete current;
+    delete current2;
     return true;
 }
 
@@ -965,6 +1033,10 @@ bool Set<ELEMENT>::isEqualTo(Set<ELEMENT> other) {
         }
         current = current->_next;
     }
+    current = nullptr;
+    current2 = nullptr;
+    delete current;
+    delete current2;
     return true && (otherSet.size() == thisSet.size());
 }
 /**
@@ -979,11 +1051,16 @@ bool Set<ELEMENT>::isEmptySet() {
 
 template<typename ELEMENT>
 vector<vector<char>> Set<ELEMENT>::getPowerSet(bool print) {
+    //cout << "Power Set" << endl;
     vector<string> result;
-    result.push_back("");
     stringstream ss;
+    Set<ELEMENT> *tmp(this);
+    if (!_sorted) {
+        tmp->sort(ASCENDING);
+    }
+
     // convert the contesnts of the set to a string
-    SetNode<ELEMENT> *current = _head;
+    SetNode<ELEMENT> *current = tmp->_head;
     while (current != nullptr) {
         ss << current->_element;
         current = current->_next;
@@ -998,7 +1075,7 @@ vector<vector<char>> Set<ELEMENT>::getPowerSet(bool print) {
         for (char c : str) {
             temp.push_back(c);
         }
-        reverse(temp.begin(), temp.end());
+        //reverse(temp.begin(), temp.end());
         v.push_back(temp);
     }
     if (print) {
@@ -1013,6 +1090,11 @@ vector<vector<char>> Set<ELEMENT>::getPowerSet(bool print) {
             cout << endl;
         }
     }
+    tmp = nullptr;
+    delete tmp;
+    current = nullptr;
+    delete current;
+    //cout << "end power set" << endl;
     return v;
 }
 
@@ -1027,18 +1109,14 @@ SetNode<ELEMENT> *Set<ELEMENT>::getNode(ELEMENT elem) {
     }
     return nullptr;
 }
-
+// use dynamic programmin to find all  subsequences of a string
 void powerSetHelper(string s, const string& o, vector<string> &v) {
     if (s.length() == 0) {
         v.push_back(o);
         return;
     }
-    powerSetHelper(s.substr(1), o + s[0], v);
     powerSetHelper(s.substr(1), o, v);
-    // remove all the duplicates from the vector
-    //sort(v.begin(), v.end());
-
-    // sort by length and then lexicographically
+    powerSetHelper(s.substr(1), o + s[0], v);
     sort(v.begin(), v.end(), [](const string& s1, const string& s2) {
         if (s1.length() == s2.length()) {
             return s1 < s2;
@@ -1046,7 +1124,7 @@ void powerSetHelper(string s, const string& o, vector<string> &v) {
             return s1.length() < s2.length();
         }
     });
-    v.erase(unique(v.begin(), v.end()), v.end());
 }
+
 
 #endif //SET_SET_H

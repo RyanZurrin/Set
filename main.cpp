@@ -3,86 +3,70 @@
 int main() {
     // test the Set class here
     Set<char> s;
-    cout << "s is empty: " << s.isEmptySet() << endl;
     s.add('A');
     s.add('B');
-    s.add('C');
-    s.add('K');
+    s.add('Z');
+    s.add('F');
     s.add('Q');
-    s.add('P');
+    s.add('S');
+    s.add('X');
     s.add('Y');
-    s.add('C');
-    s.add('W');
-    s.add('Q');
-    s.add('T');
-    cout << "s is empty: " << s.isEmptySet() << endl;
-    cout << "is s full: " << s.isFull() << endl;
-    cout << s << endl;
-    std::cout << "size: " << s.size() << std::endl;
-    std::cout << "contains q " << s.contains('Q') << std::endl;
-    std::cout << "containts Z " << s.contains('Z') << std::endl;
-    std::cout << "containts 27 " << s.contains('P') << std::endl;
-    cout << "removing P and A\n";
-    s.remove('P');
-    s.remove('A');
-    cout << s << endl;
-    std::cout << "new size: " << s.size() << std::endl;
-    std::cout << "contains Q " << s.contains('Q') << std::endl;
-    std::cout << "containts Z " << s.contains('Z') << std::endl;
-    std::cout << "containts P " << s.contains('P') << std::endl;
-    // shuffle the set
-    cout << "shuffling\n";
-    s.shuffle();
-    cout << s << endl;
-    // sort the set
-    cout << "sorting\n";
-    s.sort(DESCENDING);
-    cout << s << endl;
-    // test the iterator
-    cout << "testing iterator\n";
-    Set<char>::iterator it = s.begin();
-    while (it.hasNext()) {
-        cout << *it << " ";
-        it.next();
-    }
-    cout << endl;
 
-    vector<vector<char>> powerSet = s.getPowerSet();
-    Set<char> b;
-    b.setUnique(false);
-    for (int i = 0; i < powerSet.size(); i++) {
-        for (int j = 0; j < powerSet[i].size(); j++) {
-            b.add(powerSet[i][j]);
-        }
+    Set<char> s2;
+    s2.add('A');
+    s2.add('B');
+    s2.add('L');
+    s2.add('K');
+    s2.add('Q');
+    s2.add('K');
 
-    }
-    cout <<"printing power set\n";
-    cout << b << endl;
-    // is s a subset of b?
-    cout << "is s a subset of b? " << s.isSubsetOf(b) << endl;
-    Set<char> c;
-    c.add('Z');
-    c.add('X');
-    c.add('F');
-    cout << "is c a subset of b? " << c.isSubsetOf(b) << endl;
-    cout << "is b a subset of c? " << b.isSubsetOf(c) << endl;
-    cout << "is b a subset of s? " << b.isSubsetOf(s) << endl;
-    cout << "is s a subset of c? " << s.isSubsetOf(c) << endl;
+    Set<char> s3;
+    s3.setSorted(true);
+    s3.setUnique(false);
+    s3.add('Y');
+    s3.add('X');
+    s3.add('C');
+    s3.add('N');
+    s3.add('M');
+    cout << "s3: " << s3 << endl;
 
-    //cout << s << endl;
-    cout << "printing in reverse order\n";
-    s.printReverse();
-    cout << endl;
-    cout << "printint in normal order\n";
-    s.print();
-    cout << endl;
-    cout << "clearing\n";
-    s.clear();
-    cout << s << endl;
-    cout << "is s empty: " << s.isEmptySet() << endl;
-    cout << "is s full: " << s.isFull() << endl;
-    cout << "size: " << s.size() << endl;
-    cout << "contains Q " << s.contains('Q') << endl;
+    Set<char> s4;
+    s4.setUnique(false);
+    s4 = s + s2;
+    cout << "s4: " << s4 << endl;
+    vector<vector<char>> v = s4.getPowerSet(true);
+
+    std::cout << "s isSubsetOf s2: " << s.isSubsetOf(s2) << std::endl;
+    std::cout << "s isProperSubsetOf s2: " << s.isPropersubsetOf(s2) << std::endl;
+    std::cout << "s isSubsetOf s3: " << s.isSubsetOf(s3) << std::endl;
+    std::cout << "s isProperSubsetOf s3: " << s.isPropersubsetOf(s3) << std::endl;
+    std::cout << "s isSupersetOf s2: " << s.isSupersetOf(s2) << std::endl;
+    std::cout << "s isProperSupersetOf s2: " << s.isProperSupersetOf(s2) << std::endl;
+    std::cout << "s isSupersetOf s3: " << s.isSupersetOf(s3) << std::endl;
+    std::cout << "s isDisjointFrom s2: " << s.isDisjointFrom(s2) << std::endl;
+    std::cout << "s isDisjointFrom s3: " << s.isDisjointFrom(s3) << std::endl;
+    // test the Set s2 noqw
+    std::cout << "s2 isSubsetOf s: " << s2.isSubsetOf(s) << std::endl;
+    std::cout << "s2 isProperSubsetOf s: " << s2.isPropersubsetOf(s) << std::endl;
+    std::cout << "s2 isSubsetOf s3: " << s2.isSubsetOf(s3) << std::endl;
+    std::cout << "s2 isProperSubsetOf s3: " << s2.isPropersubsetOf(s3) << std::endl;
+    std::cout << "s2 isSupersetOf s: " << s2.isSupersetOf(s) << std::endl;
+    std::cout << "s2 isProperSupersetOf s: " << s2.isProperSupersetOf(s) << std::endl;
+    std::cout << "s2 isSupersetOf s3: " << s2.isSupersetOf(s3) << std::endl;
+    std::cout << "s2 isProperSupersetOf s3: " << s2.isProperSupersetOf(s3) << std::endl;
+    std::cout << "s2 isDisjointFrom s: " << s2.isDisjointFrom(s) << std::endl;
+    std::cout << "s2 isDisjointFrom s3: " << s2.isDisjointFrom(s3) << std::endl;
+    // test the Set s3
+    std::cout << "s3 isSubsetOf s: " << s3.isSubsetOf(s) << std::endl;
+    std::cout << "s3 isProperSubsetOf s: " << s3.isPropersubsetOf(s) << std::endl;
+    std::cout << "s3 isSubsetOf s2: " << s3.isSubsetOf(s2) << std::endl;
+    std::cout << "s3 isProperSubsetOf s2: " << s3.isPropersubsetOf(s2) << std::endl;
+    std::cout << "s3 isSupersetOf s: " << s3.isSupersetOf(s) << std::endl;
+    std::cout << "s3 isProperSupersetOf s: " << s3.isProperSupersetOf(s) << std::endl;
+    std::cout << "s3 isSupersetOf s2: " << s3.isSupersetOf(s2) << std::endl;
+    std::cout << "s3 isProperSupersetOf s2: " << s3.isProperSupersetOf(s2) << std::endl;
+    std::cout << "s3 isDisjointFrom s: " << s3.isDisjointFrom(s) << std::endl;
+    std::cout << "s3 isDisjointFrom s2: " << s3.isDisjointFrom(s2) << std::endl;
 
 
 
