@@ -50,6 +50,32 @@ int main() {
     s5.setUnique(false);
     s5 = s + s2;
     cout << s5 << endl;
+    // get the power set of s3
+    vector<vector<char>> v = s3.getPowerSet(true);
+
+    Set<char> kleene = s3.kleeneClosure(3);
+    cout << kleene << endl;
+    Set<string> s6;
+    s6.setUnique(false);
+    s6.add("abc");
+    s6.add("def");
+    s6.add("ghi");
+    s6.add("jkl");
+    cout << s6 << endl;
+
+    Set<string> s7;
+    s7.setUnique(false);
+    s7.add("a");
+    s7.add("b");
+    s7.add("c");
+    s7.add("abc");
+    s7.add("mno");
+    s7.add("pqr");
+    cout << s7 << endl;
+    s6.printUnion(s7);
+    s6.printIntersection(s7);
+    s6.printSymmetricDifference(s7);
+
    // vector<vector<char>> v = s4.getPowerSet(true);
 
 //    std::cout << "s isSubsetOf s2: " << s.isSubsetOf(s2) << std::endl;

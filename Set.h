@@ -5,6 +5,8 @@
 #ifndef SET_SET_H
 #define SET_SET_H
 #include <bits/stdc++.h>
+#include <stdio.h>
+#include <windows.h>
 using namespace std;
 // define getName to set the name of a variable to the object id
 #define getName(x) #x
@@ -47,14 +49,30 @@ class Set {
     bool _unique{};
     static string countToID(int count);
 public:
-    Set(int capacity = INT_MAX, bool sorted = false, bool unique = true, string id = countToID(object_count)); // constructor
-    Set(ELEMENT elem, int capacity = INT_MAX, bool sorted = false, bool unique = true,string id = countToID(object_count)); // constructor
-    Set(vector<ELEMENT> elements, bool sorted = false, bool unique = true, string id = countToID(object_count)); // constructor
+    Set(int capacity = INT_MAX,
+        bool sorted = false,
+        bool unique = true,
+        string id = countToID(object_count)); // constructor
+
+    Set(ELEMENT elem,
+        int capacity = INT_MAX,
+        bool sorted = false,
+        bool unique = true,
+        string id = countToID(object_count)); // constructor
+
+    Set(vector<ELEMENT> elements,
+        bool sorted = false,
+        bool unique = true,
+        string id = countToID(object_count)); // constructor
+
     Set(Set<ELEMENT> &other); // copy constructor
+
     Set(Set<ELEMENT> &&other);// move constructor
+
     Set<ELEMENT>& operator=(const Set<ELEMENT> &other); // assignment operator
 
     ~Set();
+
     void add(ELEMENT elem);
     void remove(ELEMENT elem, bool all = false);
     bool contains(ELEMENT elem);
@@ -64,6 +82,7 @@ public:
     SetNode<ELEMENT>* getNode(ELEMENT elem);
     ELEMENT pickRandom();
     ELEMENT removeRandom();
+    void reverse();
     void sort(SortType sortType = ASCENDING);
     void shuffle();
     void clear();
@@ -84,7 +103,11 @@ public:
     SetNode<ELEMENT>* getHead();
     // getTail()
     SetNode<ELEMENT>* getTail();
+
     vector<vector<char>> getPowerSet(bool print = false);
+
+    // kleene closure
+    Set<ELEMENT> kleeneClosure(int k);
 
     bool isSubsetOf(Set<ELEMENT> other);
     bool isPropersubsetOf(Set<ELEMENT> other);
@@ -299,6 +322,15 @@ public:
             temp = temp->_next;
         }
         return result;
+    }
+
+    // overload the [] operator to use bracket notation to access an ELEMENT in a set
+    ELEMENT& operator[](int index) {
+        SetNode<ELEMENT>* temp = this->_head;
+        for (int i = 0; i < index; i++) {
+            temp = temp->_next;
+        }
+        return temp->_element;
     }
 
     // iterators
@@ -1160,6 +1192,7 @@ template<typename ELEMENT>
 void Set<ELEMENT>::printIntersection(Set<ELEMENT> &other) {
     Set<ELEMENT> tmp;
     tmp = other % *this;
+    SetConsoleOutputCP(65001);
     cout << this->_id << " ∩ " << other._id << ": ";
     cout << "{ ";
     for (ELEMENT elem : tmp) {
@@ -1173,6 +1206,7 @@ template<typename ELEMENT>
 void Set<ELEMENT>::printSymmetricDifference(Set<ELEMENT> &other) {
     Set<ELEMENT> tmp;
     tmp = other / *this;
+    SetConsoleOutputCP(65001);
     cout << this->_id << " Δ " << other._id << ": ";
     cout << "{ ";
     for (ELEMENT elem : tmp) {
@@ -1267,6 +1301,34 @@ void Set<ELEMENT>::setID(string id) {
 template<typename ELEMENT>
 int Set<ELEMENT>::getObjectCount() {
     return object_count;
+}
+
+template<typename ELEMENT>
+Set<ELEMENT> Set<ELEMENT>::kleeneClosure(int k) {
+    Set<ELEMENT> tmp;
+    tmp = *this;
+    tmp.reverse();
+    tmp.setUnique(false);
+    Set<ELEMENT> result;
+    result.setUnique(false);
+    result = tmp;
+    result.reverse();
+    for (int i = 1; i < k; i++) {
+        result = result + tmp;
+    }
+    return result;
+}
+
+template<typename ELEMENT>
+void Set<ELEMENT>::reverse() {
+    Set<ELEMENT> reversed;
+    // iterate over the set in reverse order and add to the reversed set
+    SetNode<ELEMENT> *current = _tail;
+    while (current != nullptr) {
+        reversed.add(current->_element);
+        current = current->_prev;
+    }
+    *this = reversed;
 }
 
 
